@@ -71,6 +71,15 @@ class Transform_Financial:
         temp_df.index = ["Long-term financial investments"]
 
         df_rs = pd.concat([new_data.iloc[0:8], temp_df, new_data.iloc[8:]])
+        df_rs.columns = [col[:4] for col in df_rs.columns]
+        df_1 = df_rs.loc[:, ~df_rs.columns.duplicated()]
+        df_2 = df_rs.loc[:, df_rs.columns.duplicated()]
+        for col in df_2.columns:
+            if (df_2[col] != df_1[col]).all():
+                return "Có 2 cột trùng năm nhưng dữ liệu khác nhau", False
+        else:
+            df_rs = df_1
+
         df_rs.rename(columns={data_columns[i]: time+"/"+data_columns[i] for i in range(len(data_columns))}, inplace=True)
         return df_rs, True
 
@@ -102,10 +111,18 @@ class Transform_Financial:
             else:
                 list_row.append(data.loc["-1"])
 
-        new_data = pd.DataFrame(list_row)
-        new_data.index = self.list_income_keys
-        new_data.rename(columns={data_columns[i]: time+"/"+data_columns[i] for i in range(len(data_columns))}, inplace=True)
-        return new_data, True
+        df_rs = pd.DataFrame(list_row)
+        df_rs.index = self.list_income_keys
+        df_rs.columns = [col[:4] for col in df_rs.columns]
+        df_1 = df_rs.loc[:, ~df_rs.columns.duplicated()]
+        df_2 = df_rs.loc[:, df_rs.columns.duplicated()]
+        for col in df_2.columns:
+            if (df_2[col] != df_1[col]).all():
+                return "Có 2 cột trùng năm nhưng dữ liệu khác nhau", False
+        else:
+            df_rs = df_1
+        df_rs.rename(columns={data_columns[i]: time+"/"+data_columns[i] for i in range(len(data_columns))}, inplace=True)
+        return df_rs, True
 
     def transform_all(self,
                       folder_data: str,

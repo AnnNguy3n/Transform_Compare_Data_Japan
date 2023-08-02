@@ -62,10 +62,11 @@ class Compare_Financial:
         if data_fi is not None:
             data_fi.rename(columns={"Unnamed: 0": "Feature"}, inplace=True)
             data_fi = data_fi.set_index("Feature").loc[self.list_feature]
+            data_fi.columns = pd.to_datetime(data_fi.columns, format="%d/%m/%Y").strftime("%m/%Y")
 
         if data_ir is not None:
             data_ir = data_ir.set_index("Feature").loc[self.list_feature]
-            data_ir.columns = pd.to_datetime(data_ir.columns, format="%d/%m/%Y").strftime("%d/%m/%Y")
+            data_ir.columns = pd.to_datetime(data_ir.columns, format="%d/%m/%Y").strftime("%m/%Y")
 
         if data_fi is None:
             data_fi = data_ir.replace(data_ir.values, "NAN")
@@ -73,35 +74,38 @@ class Compare_Financial:
         if data_ir is None:
             data_ir = data_fi.replace(data_fi.values, "NAN")
 
-        data_fi_cols = data_fi.columns
-        for col in data_fi_cols:
-            if col.startswith("29/02"):
-                temp = "28/02" + col[5:]
-                check = True
-                for c in data_fi_cols:
-                    if c == temp:
-                        check = False
-                        break
+        # data_fi_cols = data_fi.columns
+        # for col in data_fi_cols:
+        #     if col.startswith("29/02"):
+        #         temp = "28/02" + col[5:]
+        #         check = True
+        #         for c in data_fi_cols:
+        #             if c == temp:
+        #                 check = False
+        #                 break
 
-                if check: data_fi.rename(columns={col:temp}, inplace=True)
+        #         if check: data_fi.rename(columns={col:temp}, inplace=True)
 
-        data_ir_cols = data_ir.columns
-        for col in data_ir_cols:
-            if col.startswith("29/02"):
-                temp = "28/02" + col[5:]
-                check = True
-                for c in data_ir_cols:
-                    if c == temp:
-                        check = False
-                        break
+        # data_ir_cols = data_ir.columns
+        # for col in data_ir_cols:
+        #     if col.startswith("29/02"):
+        #         temp = "28/02" + col[5:]
+        #         check = True
+        #         for c in data_ir_cols:
+        #             if c == temp:
+        #                 check = False
+        #                 break
 
-                if check: data_ir.rename(columns={col:temp}, inplace=True)
+        #         if check: data_ir.rename(columns={col:temp}, inplace=True)
 
         for col in data_ir.columns.difference(data_fi.columns):
             data_fi[col] = "NAN"
 
         for col in data_fi.columns.difference(data_ir.columns):
             data_ir[col] = "NAN"
+        
+        if len(data_fi.columns.unique()) != len(data_fi.columns) or len(data_ir.columns.unique()) != len(data_ir.columns):
+            raise
 
         df_rs = data_fi.combine(data_ir, compare_series_financial)
 
