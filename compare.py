@@ -134,7 +134,8 @@ class Compare_Financial:
                     folder_result_BA,
                     folder_result_IC,
                     folder_save_error,
-                    print_status=False):
+                    print_status=False,
+                    list_com = []):
         folder_F1_financial = edit_folder_path(folder_F1_financial)
         folder_F1_balance = edit_folder_path(folder_F1_balance)
         folder_F1_income = edit_folder_path(folder_F1_income)
@@ -146,6 +147,13 @@ class Compare_Financial:
         list_path_ba = os.listdir(folder_F1_balance)
         list_path_ic = os.listdir(folder_F1_income)
         list_error = []
+
+        if len(list_com) > 0:
+            for com in list_com:
+                if com not in list_path_fi:
+                    raise Exception(f"{com} không có trong folder_financial")
+            else:
+                list_path_fi = list_com
 
         df_count = pd.DataFrame({self.list_count[i]: [] for i in range(len(self.list_count))})
         df_count["1"] = []
