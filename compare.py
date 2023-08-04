@@ -103,7 +103,7 @@ class Compare_Financial:
 
         for col in data_fi.columns.difference(data_ir.columns):
             data_ir[col] = "NAN"
-        
+
         if len(data_fi.columns.unique()) != len(data_fi.columns) or len(data_ir.columns.unique()) != len(data_ir.columns):
             raise
 
@@ -135,7 +135,8 @@ class Compare_Financial:
                     folder_result_IC,
                     folder_save_error,
                     print_status=False,
-                    list_com = []):
+                    list_com=[],
+                    type_compare=""):
         folder_F1_financial = edit_folder_path(folder_F1_financial)
         folder_F1_balance = edit_folder_path(folder_F1_balance)
         folder_F1_income = edit_folder_path(folder_F1_income)
@@ -143,17 +144,52 @@ class Compare_Financial:
         folder_result_IC = edit_folder_path(folder_result_IC)
         folder_save_error = edit_folder_path(folder_save_error)
 
-        list_path_fi = os.listdir(folder_F1_financial)
-        list_path_ba = os.listdir(folder_F1_balance)
-        list_path_ic = os.listdir(folder_F1_income)
-        list_error = []
+        if len(list_com) == 0:
+            list_path_fi = os.listdir(folder_F1_financial)
+            list_path_ba = os.listdir(folder_F1_balance)
+            list_path_ic = os.listdir(folder_F1_income)
+        else:
+            list_path_fi_temp = os.listdir(folder_F1_financial)
+            if type_compare == "Balance":
+                list_path_ic = []
+                list_path_ba_temp = os.listdir(folder_F1_balance)
+                list_path_ba = [str(com)+".csv" for com in list_com]
+                list_path_fi = [str(com)+"_balance.csv" for com in list_com]
+                for i in range(len(list_com)):
+                    com = list_com[i]
+                    count = 0
+                    if str(com)+".csv" not in list_path_ba_temp:
+                        list_path_ba.remove(str(com)+".csv")
+                        count += 1
 
-        if len(list_com) > 0:
-            for com in list_com:
-                if com not in list_path_fi:
-                    raise Exception(f"{com} không có trong folder_financial")
+                    if str(com)+"_balance.csv" not in list_path_fi_temp:
+                        list_path_fi.remove(str(com)+"_balance.csv")
+                        count += 1
+
+                    if count == 2:
+                        raise Exception(f"{com} (balance) không tồn tại ở cả 2 nguồn")
+            elif type_compare == "Income":
+                list_path_ba = []
+                list_path_ic_temp = os.listdir(folder_F1_income)
+                list_path_ic = [str(com)+".csv" for com in list_com]
+                list_path_fi = [str(com)+"_income.csv" for com in list_com]
+                for i in range(len(list_com)):
+                    com = list_com[i]
+                    count = 0
+                    if str(com)+".csv" not in list_path_ic_temp:
+                        list_path_ic.remove(str(com)+".csv")
+                        count += 1
+
+                    if str(com)+"_income.csv" not in list_path_fi_temp:
+                        list_path_fi.remove(str(com)+"_income.csv")
+                        count += 1
+
+                    if count == 2:
+                        raise Exception(f"{com} (income) không tồn tại ở cả 2 nguồn")
             else:
-                list_path_fi = list_com
+                raise Exception("type_compare không hợp lệ")
+
+        list_error = []
 
         df_count = pd.DataFrame({self.list_count[i]: [] for i in range(len(self.list_count))})
         df_count["1"] = []
