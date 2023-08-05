@@ -148,6 +148,8 @@ class Compare_Financial:
             list_path_fi = os.listdir(folder_F1_financial)
             list_path_ba = os.listdir(folder_F1_balance)
             list_path_ic = os.listdir(folder_F1_income)
+            if type_compare != "Balance" and type_compare != "Income" and type_compare != "":
+                raise Exception("Sai type_compare")
         else:
             list_path_fi_temp = os.listdir(folder_F1_financial)
             if type_compare == "Balance":
@@ -203,85 +205,91 @@ class Compare_Financial:
         df_count["total"] = []
         df_count_ic = df_count.copy()
 
-        # Balance
-        self.pre_compare_setup("Balance")
-        for ii in range(len(list_path_fi)):
-            path = list_path_fi[ii]
-            if path.endswith("_balance.csv"):
-                num = path.split("_balance.csv")[0]
-                df_fi = pd.read_csv(folder_F1_financial + path)
-                temp_path = path.split("_balance.csv")[0] + ".csv"
-                if temp_path in list_path_ba:
-                    df_ir = pd.read_csv(folder_F1_balance + temp_path)
-                else:
-                    df_ir = None
+        if type_compare != "Income":
+            # Balance
+            self.pre_compare_setup("Balance")
+            for ii in range(len(list_path_fi)):
+                path = list_path_fi[ii]
+                if path.endswith("_balance.csv"):
+                    num = path.split("_balance.csv")[0]
+                    df_fi = pd.read_csv(folder_F1_financial + path)
+                    temp_path = path.split("_balance.csv")[0] + ".csv"
+                    if temp_path in list_path_ba:
+                        df_ir = pd.read_csv(folder_F1_balance + temp_path)
+                    else:
+                        df_ir = None
 
-                try:
-                    df_rs, temp = self.compare_1(df_fi, df_ir)
-                    df_rs.to_csv(folder_result_BA + temp_path)
-                    df_count.loc[num] = temp
-                except:
-                    list_error.append(path)
+                    try:
+                        df_rs, temp = self.compare_1(df_fi, df_ir)
+                        df_rs.to_csv(folder_result_BA + temp_path)
+                        df_count.loc[num] = temp
+                    except:
+                        list_error.append(path)
 
-                if print_status: print(ii, path)
+                    if print_status: print(ii, path)
 
-        for ii in range(len(list_path_ba)):
-            path = list_path_ba[ii]
-            temp_path = path.split(".csv")[0] + "_balance.csv"
-            if temp_path not in list_path_fi:
-                num = path.split(".csv")[0]
-                df_ir = pd.read_csv(folder_F1_balance + path)
-                try:
-                    df_rs, temp = self.compare_1(None, df_ir)
-                    df_rs.to_csv(folder_result_BA + path)
-                    df_count.loc[num] = temp
-                except:
-                    list_error.append("IR_balance_"+path)
+            for ii in range(len(list_path_ba)):
+                path = list_path_ba[ii]
+                temp_path = path.split(".csv")[0] + "_balance.csv"
+                if temp_path not in list_path_fi:
+                    num = path.split(".csv")[0]
+                    df_ir = pd.read_csv(folder_F1_balance + path)
+                    try:
+                        df_rs, temp = self.compare_1(None, df_ir)
+                        df_rs.to_csv(folder_result_BA + path)
+                        df_count.loc[num] = temp
+                    except:
+                        list_error.append("IR_balance_"+path)
 
-                if print_status: print(ii, path, "balance")
+                    if print_status: print(ii, path, "balance")
 
-        # Income
-        self.pre_compare_setup("Income")
-        for ii in range(len(list_path_fi)):
-            path = list_path_fi[ii]
-            if path.endswith("_income.csv"):
-                num = path.split("_income.csv")[0]
-                df_fi = pd.read_csv(folder_F1_financial + path)
-                temp_path = path.split("_income.csv")[0] + ".csv"
-                if temp_path in list_path_ic:
-                    df_ir = pd.read_csv(folder_F1_income + temp_path)
-                else:
-                    df_ir = None
+        if type_compare != "Balance":
+            # Income
+            self.pre_compare_setup("Income")
+            for ii in range(len(list_path_fi)):
+                path = list_path_fi[ii]
+                if path.endswith("_income.csv"):
+                    num = path.split("_income.csv")[0]
+                    df_fi = pd.read_csv(folder_F1_financial + path)
+                    temp_path = path.split("_income.csv")[0] + ".csv"
+                    if temp_path in list_path_ic:
+                        df_ir = pd.read_csv(folder_F1_income + temp_path)
+                    else:
+                        df_ir = None
 
-                try:
-                    df_rs, temp = self.compare_1(df_fi, df_ir)
-                    df_rs.to_csv(folder_result_IC + temp_path)
-                    df_count_ic.loc[num] = temp
-                except:
-                    list_error.append(path)
+                    try:
+                        df_rs, temp = self.compare_1(df_fi, df_ir)
+                        df_rs.to_csv(folder_result_IC + temp_path)
+                        df_count_ic.loc[num] = temp
+                    except:
+                        list_error.append(path)
 
-                if print_status: print(ii, path)
+                    if print_status: print(ii, path)
 
-        for ii in range(len(list_path_ic)):
-            path = list_path_ic[ii]
-            temp_path = path.split(".csv")[0] + "_income.csv"
-            if temp_path not in list_path_fi:
-                num = path.split(".csv")[0]
-                df_ir = pd.read_csv(folder_F1_income + path)
-                try:
-                    df_rs, temp = self.compare_1(None, df_ir)
-                    df_rs.to_csv(folder_result_IC + path)
-                    df_count_ic.loc[num] = temp
+            for ii in range(len(list_path_ic)):
+                path = list_path_ic[ii]
+                temp_path = path.split(".csv")[0] + "_income.csv"
+                if temp_path not in list_path_fi:
+                    num = path.split(".csv")[0]
+                    df_ir = pd.read_csv(folder_F1_income + path)
+                    try:
+                        df_rs, temp = self.compare_1(None, df_ir)
+                        df_rs.to_csv(folder_result_IC + path)
+                        df_count_ic.loc[num] = temp
 
-                except:
-                    list_error.append("IR_income_"+path)
+                    except:
+                        list_error.append("IR_income_"+path)
 
-                if print_status: print(ii, path, "income")
+                    if print_status: print(ii, path, "income")
 
         if print_status: print("Số file lỗi:", len(list_error))
         pd.DataFrame(list_error).to_csv(folder_save_error + "Financial_compare_error.csv", index=False)
-        df_count.to_csv(folder_result_BA + "Count_values.csv")
-        df_count_ic.to_csv(folder_result_IC + "Count_values.csv")
+
+        if type_compare != "Income":
+            df_count.to_csv(folder_result_BA + "Count_values.csv")
+        
+        if type_compare != "Balance":
+            df_count_ic.to_csv(folder_result_IC + "Count_values.csv")
 
 
 class Compare_Price:
