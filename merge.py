@@ -36,7 +36,7 @@ class Merge_Financial:
         elif financial_type == "Income":
             self.list_feature = self.list_income_feature
         else: raise
-    
+
     def merge_1(self, data_fi: pd.DataFrame, data_ir: pd.DataFrame):
         if data_fi is not None:
             data_fi.rename(columns={"Unnamed: 0": "Feature"}, inplace=True)
@@ -46,7 +46,7 @@ class Merge_Financial:
         if data_ir is not None:
             data_ir = data_ir.set_index("Feature").loc[self.list_feature]
             data_ir.columns = pd.to_datetime(data_ir.columns, format="%d/%m/%Y").strftime("%m/%Y")
-        
+
         if data_fi is None:
             data_fi = data_ir.replace(data_ir.values, "NAN")
 
@@ -58,14 +58,14 @@ class Merge_Financial:
 
         for col in data_fi.columns.difference(data_ir.columns):
             data_ir[col] = "NAN"
-        
+
         if len(data_fi.columns.unique()) != len(data_fi.columns) or len(data_ir.columns.unique()) != len(data_ir.columns):
             return "Có 2 cột giống nhau ở cùng 1 file", False
-        
+
         df_rs = data_fi.combine(data_ir, merge_series)
 
         return df_rs[sorted(df_rs.columns, key=lambda x:x[-4:])], True
-    
+
     def merge_all(self,
                     folder_F1_financial,
                     folder_F1_balance,
@@ -128,7 +128,7 @@ class Merge_Financial:
                         raise Exception(f"{com} (income) không tồn tại ở cả 2 nguồn")
             else:
                 raise Exception("type_merge không hợp lệ")
-        
+
         list_error = []
 
         if type_merge != "Income":
@@ -136,7 +136,7 @@ class Merge_Financial:
             self.pre_merge_setup("Balance")
             for ii in range(len(list_path_fi)):
                 path = list_path_fi[ii]
-                
+
                 if path.endswith("_balance.csv"):
                     if print_status: print(ii, path)
                     df_fi = pd.read_csv(folder_F1_financial + path)
@@ -145,31 +145,38 @@ class Merge_Financial:
                         df_ir = pd.read_csv(folder_F1_balance + temp_path)
                     else:
                         df_ir = None
-                    
-                    df_rs, check = self.merge_1(df_fi, df_ir)
-                    if check:
-                        df_rs.to_csv(folder_result_BA + temp_path)
-                    else:
-                        list_error.append(f"{path}: {df_rs}")
-            
+
+                    try:
+                        df_rs, check = self.merge_1(df_fi, df_ir)
+                        if check:
+                            df_rs.to_csv(folder_result_BA + temp_path)
+                        else:
+                            list_error.append(f"{path}: {df_rs}")
+                    except Exception as exception:
+                        list_error.append(f"{path}: {exception}")
+
             for ii in range(len(list_path_ba)):
                 path = list_path_ba[ii]
                 temp_path = path.split(".csv")[0] + "_balance.csv"
                 if temp_path not in list_path_fi:
                     if print_status: print(ii, path, "balance")
                     df_ir = pd.read_csv(folder_F1_balance + path)
-                    df_rs, check = self.merge_1(None, df_ir)
-                    if check:
-                        df_rs.to_csv(folder_result_BA + path)
-                    else:
-                        list_error.append(f"IR_balance_{path}: {df_rs}")
-        
+
+                    try:
+                        df_rs, check = self.merge_1(None, df_ir)
+                        if check:
+                            df_rs.to_csv(folder_result_BA + path)
+                        else:
+                            list_error.append(f"IR_balance_{path}: {df_rs}")
+                    except Exception as exception:
+                        list_error.append(f"IR_balance_{path}: {exception}")
+
         if type_merge != "Balance":
             # Income
             self.pre_merge_setup("Income")
             for ii in range(len(list_path_fi)):
                 path = list_path_fi[ii]
-                
+
                 if path.endswith("_income.csv"):
                     if print_status: print(ii, path)
                     df_fi = pd.read_csv(folder_F1_financial + path)
@@ -178,24 +185,31 @@ class Merge_Financial:
                         df_ir = pd.read_csv(folder_F1_income + temp_path)
                     else:
                         df_ir = None
-                    
-                    df_rs, check = self.merge_1(df_fi, df_ir)
-                    if check:
-                        df_rs.to_csv(folder_result_IC + temp_path)
-                    else:
-                        list_error.append(f"{path}: {df_rs}")
-            
+
+                    try:
+                        df_rs, check = self.merge_1(df_fi, df_ir)
+                        if check:
+                            df_rs.to_csv(folder_result_IC + temp_path)
+                        else:
+                            list_error.append(f"{path}: {df_rs}")
+                    except Exception as exception:
+                        list_error.append(f"{path}: {exception}")
+
             for ii in range(len(list_path_ic)):
                 path = list_path_ic[ii]
                 temp_path = path.split(".csv")[0] + "_income.csv"
                 if temp_path not in list_path_fi:
                     if print_status: print(ii, path, "income")
                     df_ir = pd.read_csv(folder_F1_income + path)
-                    df_rs, check = self.merge_1(None, df_ir)
-                    if check:
-                        df_rs.to_csv(folder_result_IC + path)
-                    else:
-                        list_error.append(f"IR_income_{path}: {df_rs}")
-        
+
+                    try:
+                        df_rs, check = self.merge_1(None, df_ir)
+                        if check:
+                            df_rs.to_csv(folder_result_IC + path)
+                        else:
+                            list_error.append(f"IR_income_{path}: {df_rs}")
+                    except Exception as exception:
+                        list_error.append(f"IR_income_{path}: {exception}")
+
         if print_status: print("Số file lỗi:", len(list_error))
         pd.DataFrame(list_error).to_csv(folder_save_error + "Financial_merge_error.csv", index=False)
